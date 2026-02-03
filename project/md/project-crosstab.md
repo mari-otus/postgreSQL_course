@@ -81,7 +81,7 @@ SELECT * FROM crosstab(
 Здесь также используется кастомная агрегация массивов, как и в случае CASE WHEN преобразования.
 
 Одно из ограничений CROSSTAB — необходимость заранее определять структуру результирующей таблицы. 
-Чтобы обойти это ограничение, можно использовать динамический SQL:
+Чтобы обойти это ограничение, можно использовать динамический SQL.
 
 ## PIVOT-преобразования. CROSSTAB подход для динамического числа столбцов
 
@@ -128,7 +128,7 @@ BEGIN
         ''SELECT 
         products.id, products.code, products.name, products.status, products.product_group_code,
         lower(attribute.code), 
-        array_remove(product.my_array_concat(COALESCE(string_to_array(NULLIF(attribute.standard, ''''''''), '''',''''), attribute.collection_value, array[''''''''])::text[]), '''''''')
+        array_remove(my_array_concat(COALESCE(string_to_array(NULLIF(attribute.standard, ''''''''), '''',''''), attribute.collection_value, array[''''''''])::text[]), '''''''')
         FROM product products
            JOIN product_version ON products.id::text = product_version.product_id::text AND product_version.status::text = ''''ACTIVE''''::text AND product_version.start_date <= CURRENT_TIMESTAMP
            LEFT JOIN attribute ON products.id::text = attribute.product_id::text AND attribute.version_id::text = product_version.id::text
@@ -158,7 +158,7 @@ $$
 Вызываем процедуру для создания материализованного представления:
 
 ```
-CALL product.create_view_dynamic_crosstab();
+CALL create_view_dynamic_crosstab();
 ```
 
 В итоге будет создано материализованное представление `prodcat_view_crosstab`:

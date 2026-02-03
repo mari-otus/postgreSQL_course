@@ -1,0 +1,14 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: 'library/postgres:15.4'
+    ports:
+      - "5436:5432"
+    environment:
+      POSTGRES_DB: "otus"
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    command: '-c config_file=/etc/postgresql.conf'
+    volumes:
+      - ./postgresql.conf:/etc/postgresql.conf:ro

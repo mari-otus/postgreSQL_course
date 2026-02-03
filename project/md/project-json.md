@@ -59,7 +59,7 @@ WITH DATA;
 
 ## Скорость построения MATERIALIZED VIEW
 
-Выполним запрос, который был сформирован для создания MATERIALIZED VIEW через ХП выше:
+Выполним запрос, который был сформирован для создания MATERIALIZED VIEW выше:
 
 ```sql
 explain analyze

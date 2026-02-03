@@ -29,7 +29,7 @@ GROUP BY product.id, product.code, product.name, product.status, product.product
 ORDER BY product.code;
 ```
 
-Такое решение не подхоит, т.к. коды атрибутов и их количесвто заранее неизвестно.
+Такое решение не подхоит, т.к. коды атрибутов и количесвто атрибутов заранее неизвестно.
 
 ## Агрегация значений атрибутов
 
@@ -38,7 +38,7 @@ ORDER BY product.code;
 ```sql
 COALESCE(string_to_array(NULLIF(attribute.standard, ''), ','), attribute.collection_value, array['']) 
 ```
-Массивы в этом случае получаются разной размерности, шатные функции postgreSQL могут  агрегрировать данные только для массивов с одинаковой размерностью.
+Массивы в этом случае получаются разной размерности, шатные функции postgreSQL могут агрегрировать данные только для массивов с одинаковой размерностью.
 Поэтому пришлось создать кастомную функцию, которая может собирать массивы разной длины:
 ```sql
 CREATE AGGREGATE my_array_concat (anycompatiblearray) (
@@ -86,7 +86,7 @@ BEGIN
     
     -- Формируем строки с агрегациями
     FOR i IN 1..array_length(attribute_codes, 1) LOOP
-    cat_columns := cat_columns || ', array_remove(product_lt.my_array_concat(CASE WHEN lower(attribute.code) = ''' || attribute_codes[i] || ''' THEN COALESCE(string_to_array(NULLIF(attribute.standard, ''''), '',''), attribute.collection_value, array[''''])::text[] else array[''''] end), '''') as ' || attribute_codes[i];
+    cat_columns := cat_columns || ', array_remove(my_array_concat(CASE WHEN lower(attribute.code) = ''' || attribute_codes[i] || ''' THEN COALESCE(string_to_array(NULLIF(attribute.standard, ''''), '',''), attribute.collection_value, array[''''])::text[] else array[''''] end), '''') as ' || attribute_codes[i];
     -- Формируем запрос для создания индексов
     idx_query := idx_query || 'create index if not exists idx_pvcw_' || attribute_codes[i] || ' ON prodcat_view_case_when USING gin ("' || attribute_codes[i] || '"); ';
     END LOOP;
