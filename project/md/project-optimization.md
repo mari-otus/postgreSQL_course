@@ -16,7 +16,7 @@ select
 from
     -- Для CASE WHEN prodcat_view_case_when pvc
     -- Для CASE WHEN prodcat_view_crosstab pvc
-    prodcat_view_crosstab pvc
+    prodcat_view_case_when pvc
 where
     pvc.product_group_code in ('1702', '0301')
   and (
@@ -42,6 +42,7 @@ where
 
 Для JSON запрос будет иметь вид:
 ```sql
+explain analyze
 select
     pv.product_code,
     pv.attributes,
@@ -121,6 +122,8 @@ Planning Time: 0.676 ms
 Execution Time: 0.869 ms
 ```
 
+![req_case-when.png](image/req_case-when.png)
+
 Для CROSSTAB получаем результат **0.712 ms**:
 ```sql
 Bitmap Heap Scan on prodcat_view_crosstab pvc  (cost=40.28..734.21 rows=415 width=2407) (actual time=0.129..0.673 rows=457 loops=1)
@@ -142,10 +145,21 @@ Planning Time: 0.483 ms
 Execution Time: 0.712 ms
 ```
 
+![req_crosstab.png](image/req_crosstab.png)
+
 Для JSON создадим индексы
 ```sql
 CREATE INDEX idxgin_attributes ON prodcat_view USING gin (attributes jsonb_path_ops);
 CREATE INDEX ix_product_code_v ON prodcat_view USING btree (product_code);
+```
+
+Согласно документации postgresql:
+```text
+Класс операторов jsonb_path_ops поддерживает только запросы с операторами @>, @? и @@, 
+но он значительно производительнее класса по умолчанию jsonb_ops. 
+Индекс jsonb_path_ops обычно гораздо меньше индекса jsonb_ops для тех же данных и более точен при поиске, 
+особенно если запросы обращаются к ключам, часто встречающимся в данных. 
+Таким образом, с ним операции поиска выполняются гораздо эффективнее, чем с классом операторов по умолчанию.
 ```
 
 и получим результат **0.642 ms**
@@ -169,6 +183,21 @@ Planning Time: 0.212 ms
 Execution Time: 0.642 ms
 ```
 
+![req_json.png](image/req_json.png)
+
 ## Итого
 Запросы при разных подходах выполняются в сравнительно одинаковое время 0.6-0.8 мс.
+
+Все планы посторения запросов одинаковы.
+Используется битовая карта.
+
+Из докумнтации postgreSQL:
+
+```text
+Выполняя объединение нескольких индексов, система сканирует все необходимые индексы и создаёт в памяти битовую карту расположения строк таблицы, которые удовлетворяют условиям каждого индекса. 
+Затем битовые карты объединяются операциями AND и OR, как того требуют условия в запросе. 
+Наконец система обращается к соответствующим отмеченным строкам таблицы и возвращает их данные. 
+Строки таблицы просматриваются в физическом порядке, как они представлены в битовой карте; 
+это означает, что порядок сортировки индексов при этом теряется и в запросах с предложением ORDER BY сортировка будет выполняться отдельно. 
+```
 

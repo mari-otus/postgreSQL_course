@@ -261,3 +261,7 @@ GroupAggregate  (cost=7861.35..13337.31 rows=4346 width=2755) (actual time=125.9
 Planning Time: 0.906 ms
 Execution Time: 3497.693 ms
 ```
+
+Построим диаграммы в сервисе [https://explain.tensor.ru/](https://explain.tensor.ru/):
+
+![view_case-when.png](image/view_case-when.png)

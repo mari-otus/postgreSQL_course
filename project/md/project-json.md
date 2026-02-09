@@ -107,3 +107,7 @@ Subquery Scan on attr  (cost=8254.34..8308.67 rows=4346 width=94) (actual time=3
 Planning Time: 0.357 ms
 Execution Time: 384.524 ms
 ```
+
+Диаграмма:
+
+![view_json.png](image/view_json.png)
